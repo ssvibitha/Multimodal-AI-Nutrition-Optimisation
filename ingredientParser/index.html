@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingredient Parser Using Gemini</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .main-header {
+            font-size: 2.8rem;
+            font-weight: bold;
+            text-align: center;
+            background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 1rem 0;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        .upload-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .upload-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .upload-form input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .upload-form button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            border: none;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-form button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .result pre {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="main-header">Ingredient Parser Using Gemini</h1>
+    <p class="subtitle">Capture or enter ingredients to extract structured information</p>
+    
+    <div class="upload-form">
+        <h3>Option 1: Capture from Camera</h3>
+        <video id="video" width="320" height="240" autoplay></video>
+        <br>
+        <button id="startCamera">Start Camera</button><br><br>
+        <button id="capturePhoto">Capture Photo</button><br><br>
+        <button id="parsePhoto">Parse Captured Photo</button><br><br>
+        <canvas id="canvas" style="display:none;"></canvas>
+        
+        <hr>
+        <h3>Option 2: Enter List of Ingredients</h3>
+        <textarea id="ingredientsText" rows="4" placeholder="Enter ingredients separated by commas, e.g., milk, eggs, flour"></textarea>
+        <br>
+        <button id="parseText">Parse Ingredients</button>
+        
+        <hr>
+        <h3>Option 3: Upload Photo</h3>
+        <input type="file" id="photoUpload" accept="image/*">
+        <br>
+        <button id="parseUploadedPhoto">Parse Uploaded Photo</button>
+    </div>
+    
+    <div class="result" id="result">
+        <h2>Parsed Health Report</h2>
+        <pre id="reportContent"></pre>
+    </div>
+
+    <script>
+        let stream;
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        document.getElementById('startCamera').addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (error) {
+                alert('Error accessing camera: ' + error.message);
+            }
+        });
+
+        document.getElementById('capturePhoto').addEventListener('click', () => {
+            if (!stream) {
+                alert('Please start the camera first');
+                return;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+        });
+
+        document.getElementById('parsePhoto').addEventListener('click', async () => {
+            const dataURL = canvas.toDataURL('image/jpeg');
+            const base64 = dataURL.split(',')[1];
+            try {
+                const response = await fetch('/parse-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: base64, mimeType: 'image/jpeg' })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('reportContent').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('Error parsing image');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error parsing image');
+            }
+        });
+
+        document.getElementById('parseText').addEventListener('click', async () => {
+            const ingredients = document.getElementById('ingredientsText').value.trim();
+            if (!ingredients) {
+                alert('Please enter ingredients');
+                return;
+            }
+            const ingredientsList = ingredients.split(',').map(i => i.trim());
+            try {
+                const response = await fetch('/parse-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredients: ingredientsList })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('reportContent').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('Error parsing text');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error parsing text');
+            }
+        });
+
+        document.getElementById('parseUploadedPhoto').addEventListener('click', async () => {
+            const fileInput = document.getElementById('photoUpload');
+            if (fileInput.files.length === 0) {
+                alert('Please select a photo');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('photo', fileInput.files[0]);
+            try {
+                const response = await fetch('/parse-uploaded-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('reportContent').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('Error parsing uploaded photo');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error parsing uploaded photo');
+            }
+        });
+    </script>
+</body>
+</html>
+    

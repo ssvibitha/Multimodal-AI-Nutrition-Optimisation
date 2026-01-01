@@ -1,0 +1,11 @@
+/IngredienetList_*.json
+/new.json
+/health_report_*.json
+/Recipe_*.json
+/ShoppingList_*.json
+/UserProfile_*.json
+/.env
+/.config
+/node_modules
+/uploads
+/photoUploads
