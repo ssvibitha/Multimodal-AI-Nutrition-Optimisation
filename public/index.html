@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimodal Nutrition Helper</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            flex: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-decoration: none;
+            /* Make card clickable link */
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card h2 {
+            margin: 1rem 0;
+            color: #333;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            color: #666;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Multimodal Nutrition Helper</h1>
+        <p class="subtitle">An AI-powered assistant for your kitchen and health</p>
+    </header>
+
+    <div class="container">
+        <!-- Vision Module Card -->
+        <a href="modules/vision/index.html" class="card">
+            <div class="icon"><i class="fas fa-camera"></i></div>
+            <h2>Ingredient Scanner</h2>
+            <p>Scan your fridge ingredients from photos or text. AI parses them for you.</p>
+        </a>
+
+        <!-- Doc Parser Card -->
+        <a href="modules/doc/index.html" class="card">
+            <div class="icon"><i class="fas fa-file-medical"></i></div>
+            <h2>Health Report Parser</h2>
+            <p>Upload medical documents to extract structured health information.</p>
+        </a>
+
+        <!-- Recipe Generator Card -->
+        <a href="modules/recipe/index.html" class="card">
+            <div class="icon"><i class="fas fa-utensils"></i></div>
+            <h2>Recipe Generator</h2>
+            <p>Get personalized recipe suggestions based on your scanned ingredients.</p>
+        </a>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Multimodal Nutrition App</p>
+    </footer>
+
+    <!-- Chatbot Widget Script -->
+    <script src="js/chatbot-widget.js"></script>
+
+</body>
+
+</html>

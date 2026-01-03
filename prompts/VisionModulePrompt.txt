@@ -19,6 +19,5 @@ Output STRICT JSON ONLY in this format:
       "confidence": "high | medium | low",
       "label_text_detected": "string or null"
     }
-  ],
-  "notes": "1-line summary of detection confidence"
+  ]
 }

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .main-card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+            /* Important for width */
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button.secondary {
+            background: #fff;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #recipesContainer {
+            margin-top: 2rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .recipe-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background: #fafafa;
+            transition: transform 0.2s;
+        }
+
+        .recipe-card:hover {
+            transform: scale(1.01);
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .recipe-card h3 {
+            color: #2d3748;
+            margin-top: 0;
+        }
+
+        .recipe-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5rem;
+            margin: 0.5rem 0;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="header-container">
+        <h1>Recipe Generator <i class="fas fa-hat-chef"></i></h1>
+        <p>Turn your ingredients into delicious meals</p>
+    </div>
+
+    <div class="main-card">
+        <div class="input-group">
+            <label for="ingredientsInput">Enter Ingredients (or use last scan):</label>
+            <textarea id="ingredientsInput" placeholder="E.g. Chicken, broccoli, garlic, soy sauce..."></textarea>
+        </div>
+
+        <div class="btn-group">
+            <button id="generateBtn"><i class="fas fa-magic"></i> Generate Recipes</button>
+            <button id="useLastScanBtn" class="secondary"><i class="fas fa-history"></i> Use Last Scanned
+                Ingredients</button>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Cooking up some ideas...</p>
+        </div>
+
+        <div id="recipesContainer"></div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const useLastScanBtn = document.getElementById('useLastScanBtn');
+        const ingredientsInput = document.getElementById('ingredientsInput');
+        const loading = document.getElementById('loading');
+        const recipesContainer = document.getElementById('recipesContainer');
+
+        async function generateRecipes(payload) {
+            loading.style.display = 'block';
+            recipesContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/recipe/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                loading.style.display = 'none';
+
+                if (data.success && data.recipes) {
+                    displayRecipes(data.recipes);
+                } else {
+                    recipesContainer.innerHTML = `<p style="color: red; text-align: center;">${data.error || 'Failed to generate recipes.'}</p>`;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                loading.style.display = 'none';
+                recipesContainer.innerHTML = `<p style="color: red; text-align: center;">An error occurred. Please try again.</p>`;
+            }
+        }
+
+        function displayRecipes(recipes) {
+            if (!recipes || recipes.length === 0) {
+                recipesContainer.innerHTML = '<p>No recipes found.</p>';
+                return;
+            }
+
+            recipes.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card';
+
+                let ingredientsHtml = '<ul>';
+                if (Array.isArray(recipe.Ingredients)) { // Handle different JSON structures if needed
+                    recipe.Ingredients.forEach(ing => ingredientsHtml += `<li>${ing}</li>`);
+                } else if (typeof recipe.Ingredients === 'string') {
+                    ingredientsHtml += `<li>${recipe.Ingredients}</li>`;
+                } else {
+                    // Try to dynamically display
+                    ingredientsHtml += `<li>${JSON.stringify(recipe.Ingredients || recipe['Ingredients (with quantities)'])}</li>`;
+                }
+                ingredientsHtml += '</ul>';
+
+                let instructionsHtml = '<ol>';
+                if (Array.isArray(recipe.Instructions)) {
+                    recipe.Instructions.forEach(step => instructionsHtml += `<li>${step}</li>`);
+                } else {
+                    instructionsHtml += `<li>${JSON.stringify(recipe.Instructions || recipe['Instructions (step-by-step)'])}</li>`;
+                }
+                instructionsHtml += '</ol>';
+
+
+                card.innerHTML = `
+                    <h3><i class="fas fa-utensils"></i> ${recipe['Recipe Name'] || recipe.name}</h3>
+                    <div class="recipe-meta">Match Reason: ${recipe['Why it matches the ingredients'] || 'N/A'}</div>
+                    <div class="recipe-meta">Nutrition: ${recipe['Nutritional Info'] || 'N/A'}</div>
+                    
+                    <div class="section-title">Ingredients:</div>
+                    ${ingredientsHtml}
+                    
+                    <div class="section-title">Instructions:</div>
+                    ${instructionsHtml}
+                `;
+                recipesContainer.appendChild(card);
+            });
+        }
+
+        generateBtn.addEventListener('click', () => {
+            const ingredients = ingredientsInput.value.trim();
+            if (!ingredients) {
+                alert('Please enter ingredients or use the Last Scan button.');
+                return;
+            }
+            generateRecipes({ ingredients: ingredients });
+        });
+
+        useLastScanBtn.addEventListener('click', () => {
+            generateRecipes({ existingFile: true });
+        });
+
+    </script>
+
+    <!-- Chatbot Widget -->
+    <!-- Note: Need to adjust path to ../../js/chatbot-widget.js since we are in public/modules/recipe/ -->
+    <script src="../../js/chatbot-widget.js"></script>
+
+</body>
+
+</html>
