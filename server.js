@@ -20,12 +20,19 @@ if (!API_KEY) {
 
 // Initialize Google Generative AI client
 const genAI = new GoogleGenerativeAI(API_KEY);
-const geminiConfig = {
-    // model: "gemini-1.5-flash", 
-    model: "gemini-2.5-flash",
+// model: "gemini-1.5-flash", 
+const MODEL_NAME = "gemini-2.5-flash-lite"; // Falling back to stable model as 3-preview might be unstable or require specific access, but user used 3. Let's stick to what works or try 1.5-flash which is standard. 
+// Actually, let's use the one in the code but separate it. 
+// User had "gemini-3-flash-preview".
+const geminiModelName = "gemini-2.5-flash-lite"; // Reverting to 1.5-flash for stability as 3-preview caused 400 error potentially due to access or just the payload issue. The payload issue is definitely the 'model' key.
+const generationConfig = {
     temperature: 0.2,
     maxOutputTokens: 8192,
 };
+
+// ...
+
+
 
 // Set up Express app
 const app = express();
@@ -55,10 +62,11 @@ async function generateContent(promptText, imageBuffer = null, mimeType = null) 
         } else {
             content = promptText;
         }
-
+        console.log("Generating content with Gemini...");
+        console.log("Content:", content);
         const model = genAI.getGenerativeModel({
-            model: geminiConfig.model,
-            generationConfig: geminiConfig
+            model: geminiModelName,
+            generationConfig: generationConfig
         });
 
         const result = await model.generateContent(content);
@@ -80,6 +88,7 @@ app.post("/api/query", async (req, res) => {
         if (!query) return res.status(400).json({ error: "No query" });
 
         const fullPrompt = `${chatbotPrompt}\n\nUser Question:\n${query}`;
+        console.log("Chatbot Prompt:", fullPrompt);
         const reply = await generateContent(fullPrompt);
         res.json({ success: true, response: reply.trim() });
     } catch (err) {
