@@ -7,6 +7,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import json5 from "json5";
+import https from "https";
+import http from "http";
+import selfsigned from "selfsigned";
 
 // Load environment variables
 dotenv.config();
@@ -272,6 +275,50 @@ app.post('/api/recipe/generate', async (req, res) => {
 
 
 // Start Server
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+const HTTP_PORT = 3000;
+const HTTPS_PORT = 3443;
+
+const certDir = path.join(__dirname, 'certificates');
+if (!fs.existsSync(certDir)) {
+    fs.mkdirSync(certDir);
+}
+
+const keyPath = path.join(certDir, 'key.pem');
+const certPath = path.join(certDir, 'cert.pem');
+
+let httpsOptions;
+
+try {
+    if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+        console.log("Loading existing certificates...");
+        httpsOptions = {
+            key: fs.readFileSync(keyPath),
+            cert: fs.readFileSync(certPath)
+        };
+    } else {
+        console.log("Generating self-signed certificates...");
+        const attrs = [{ name: 'commonName', value: 'localhost' }];
+        const pems = await selfsigned.generate(attrs, { days: 365 });
+
+        fs.writeFileSync(keyPath, pems.private);
+        fs.writeFileSync(certPath, pems.cert);
+
+        httpsOptions = {
+            key: pems.private,
+            cert: pems.cert
+        };
+        console.log("Certificates generated and saved.");
+    }
+
+    // Start HTTPS Server
+    https.createServer(httpsOptions, app).listen(HTTPS_PORT, () => {
+        console.log(`HTTPS Server running at https://localhost:${HTTPS_PORT}`);
+    });
+} catch (error) {
+    console.error("Failed to start HTTPS server:", error);
+}
+
+// Start HTTP Server
+http.createServer(app).listen(HTTP_PORT, () => {
+    console.log(`HTTP Server running at http://localhost:${HTTP_PORT}`);
 });
