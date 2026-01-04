@@ -15,6 +15,7 @@ fi
 
 # Start the node server in background
 echo "Starting $SCRIPT..."
+npm install
 nohup node $SCRIPT > server.log 2>&1 &
 
 echo "Server started in background."
