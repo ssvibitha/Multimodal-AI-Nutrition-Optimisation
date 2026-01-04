@@ -201,7 +201,7 @@
         @media (max-width: 480px) {
             .chatbot-container {
                 width: 350px;
-                height: 550px;
+                height: 400px;
                 right: 10px;
                 bottom: 60px;
             }

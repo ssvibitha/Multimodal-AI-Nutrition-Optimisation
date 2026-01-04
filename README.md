@@ -7,7 +7,19 @@ http://136.113.33.13:3000/js/chatbot-widget.js
 ```
 
 ```
-var script = document.createElement('script');
-script.src = 'http://136.113.33.13:3000/js/chatbot-widget.js';
-document.head.appendChild(script);
+sh run.sh
 ```
+
+To view the log file
+```
+tail -f server.log
+```
+or
+```
+less server.log
+```
+or
+```
+tail -1000 server.log
+```
+
