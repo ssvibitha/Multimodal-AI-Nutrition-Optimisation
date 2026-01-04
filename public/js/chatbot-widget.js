@@ -41,7 +41,7 @@
             bottom: 70px;
             right: 0;
             width: 350px;
-            height: 550px;
+            height: 500px;
             background: white;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
@@ -201,7 +201,7 @@
         @media (max-width: 480px) {
             .chatbot-container {
                 width: 350px;
-                height: 400px;
+                height: 550px;
                 right: 10px;
                 bottom: 60px;
             }
