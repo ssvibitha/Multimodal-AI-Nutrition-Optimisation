@@ -1,5 +1,5 @@
 ```
-npm install express dotenv json5 multer @google/generative-ai
+npm install express dotenv json5 multer cors @google/generative-ai
 ```
 
 ```
