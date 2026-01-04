@@ -288,6 +288,11 @@
         isChatbotOpen = false;
     });
 
+    // Determine the base URL from the script tag
+    const scriptTag = document.currentScript;
+    const scriptUrl = new URL(scriptTag.src);
+    const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
+
     // Send message function
     async function sendMessage() {
         const message = chatInput.value.trim();
@@ -302,7 +307,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
-            const response = await fetch('/api/query', {
+            const response = await fetch(`${baseUrl}/api/query`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
